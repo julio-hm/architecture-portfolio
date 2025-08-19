@@ -19,7 +19,7 @@ export const fetchProjects = async (): Promise<Project[]> => {
 
     return new Promise((resolve, reject) => {
       Papa.parse(csvText, {
-        header: false, // We will use column index to be more robust
+        header: true, // Now using header names instead of column index
         skipEmptyLines: true,
         complete: (results: Papa.ParseResult<any>) => {
           if (results.errors.length) {
@@ -29,47 +29,47 @@ export const fetchProjects = async (): Promise<Project[]> => {
             return;
           }
 
-          // Skip header row (index 0) and map the rest by column index
-          const projects: Project[] = results.data.slice(1).map((row: any) => {
-            const status = row[10] || 'Completed'; // Column K
+          // Map data by header name
+          const projects: Project[] = results.data.map((row: any) => {
+            const status = row.estado || 'Completed'; // Use 'estado' from sheet
             const completionPercentage = (status.toLowerCase() === 'terminado' || status.toLowerCase() === 'completed')
                 ? 100
-                : (Number(row[14]) || 0); // Column O
+                : (Number(row['Porcentaje de finalización']) || 0); // Use 'Porcentaje de finalización'
             
-            const areaDistribution = (row[19] || '').split(',').map((item: string) => { // Column T
+            const areaDistribution = (row.areaDistribución || '').split(',').map((item: string) => {
                 const [name, value] = item.split(':');
                 return { name, value: Number(value) };
             }).filter((item: any) => item.name && !isNaN(item.value));
 
             return {
-                id: row[0], // Column A
-                projectName: row[1], // Column B
-                shortDescription: row[2] || '', // Column C
-                longDescription: row[3] || 'No description available.', // Column D
-                mainImage: row[4] || 'https://picsum.photos/seed/default/800/600', // Column E
-                galleryImages: (row[5] || '').split(',').map((url: string) => url.trim()).filter(url => url), // Column F
-                location: row[6] || 'Unknown', // Column G
-                year: row[7] || 'N/A', // Column H
-                category: row[8] || 'Uncategorized', // Column I
-                client: row[9] || 'Confidential', // Column J
+                id: row.Id, // Use 'Id' from sheet
+                projectName: row['nombre del proyecto'], // Use 'nombre del proyecto' from sheet
+                shortDescription: row['descripción corta'] || '',
+                longDescription: row['descripción larga'] || 'No description available.',
+                mainImage: row['Imagen principal'] || 'https://picsum.photos/seed/default/800/600',
+                galleryImages: (row.galeríaImágenes || '').split(',').map((url: string) => url.trim()).filter(url => url),
+                location: row.ubicación || 'Unknown',
+                year: row.año || 'N/A',
+                category: row.categoría || 'Uncategorized',
+                client: row.cliente || 'Confidential',
                 status: status,
-                architects: row[11] || 'Not listed', // Column L
-                area: Number(row[12]) || 0, // Column M
-                awards: row[13] || 'None', // Column N
+                architects: row.arquitectos || 'Not listed',
+                area: Number(row.área) || 0,
+                awards: row.premios || 'None',
                 completionPercentage: completionPercentage,
-                recamaras: Number(row[15]) || 0, // Column P
-                banos: Number(row[16]) || 0, // Column Q
-                cocina: Number(row[17]) || 0, // Column R
-                estacionamiento: Number(row[18]) || 0, // Column S
+                recamaras: Number(row.recamaras) || 0,
+                banos: Number(row.baños) || 0,
+                cocina: Number(row.cocina) || 0,
+                estacionamiento: Number(row.estacionamiento) || 0,
                 areaDistribution: areaDistribution,
-                costPerSqMeter: row[20] || undefined, // Column U
-                executionTime: row[21] || undefined, // Column V
+                costPerSqMeter: row.costPerSqMeter || undefined,
+                executionTime: row.executionTime || undefined,
             };
           }).filter((p: Project) => p.id && p.projectName);
 
           if (projects.length === 0) {
-            if (results.data.length > 1) {
-                reject(new Error("Parsing completed, but no valid project data was found. Please check that your sheet has data in the first two columns (ID and Project Name) after the header row."));
+            if (results.data.length > 0) { // Changed from > 1 because header:true means results.data will not include header
+                reject(new Error("Parsing completed, but no valid project data was found. Please check that your sheet has data in the 'Id' and 'nombre del proyecto' columns."));
             } else {
                 reject(new Error("No projects found. Your Google Sheet might be empty or not published correctly."));
             }

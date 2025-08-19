@@ -5,8 +5,8 @@ import Loader from './components/ui/Loader';
 import ProjectCard from './components/ProjectCard';
 import ProjectDetailView from './components/ProjectDetailView';
 import DonutChart from './components/ui/DonutChart';
-import nuevoLogo from './IMG/LOGO EJEMP.png';
-import nombreLogo from './IMG/LOGO ADAD5.png';
+import nuevoLogo from '/LOGO EJEMP.png';
+import nombreLogo from '/LOGO ADAD5.png';
 
 // --- Hooks ---
 const useMediaQuery = (query: string) => {

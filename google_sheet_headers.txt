@@ -1,0 +1,1 @@
+id,projectName,shortDescription,longDescription,mainImage,galleryImages,location,year,category,client,status,architects,area,awards,completionPercentage,recamaras,banos,cocina,estacionamiento,areaDistribution
